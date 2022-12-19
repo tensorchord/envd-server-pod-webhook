@@ -1,4 +1,4 @@
-module github.com/slackhq/simple-kubernetes-webhook
+module github.com/tensorchord/envd-server-pod-webhook
 
 go 1.16
 

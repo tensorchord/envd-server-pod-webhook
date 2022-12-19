@@ -2,27 +2,27 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: simple-kubernetes-webhook
-  name: simple-kubernetes-webhook
+    app: envd-server-pod-webhook
+  name: envd-server-pod-webhook
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: simple-kubernetes-webhook
+      app: envd-server-pod-webhook
   template:
     metadata:
       labels:
-        app: simple-kubernetes-webhook
+        app: envd-server-pod-webhook
     spec:
       tolerations:
         - key: acme.com/lifespan-remaining
           operator: Exists
           effect: NoSchedule
       containers:
-        - image: simple-kubernetes-webhook:latest
+        - image: envd-server-pod-webhook:latest
           imagePullPolicy: Never
-          name: simple-kubernetes-webhook
+          name: envd-server-pod-webhook
           env:
             - name: TLS
               value: "true"
@@ -37,4 +37,4 @@ spec:
       volumes:
         - name: tls
           secret:
-            secretName: simple-kubernetes-webhook-tls
+            secretName: envd-server-pod-webhook-tls

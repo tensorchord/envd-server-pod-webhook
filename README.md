@@ -1,10 +1,4 @@
-# simple-kubernetes-webhook
-
-This is a simple [Kubernetes admission webhook](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/). It is meant to be used as a validating and mutating admission webhook only and does not support any controller logic. It has been developed as a simple Go web service without using any framework or boilerplate such as kubebuilder.
-
-This project is aimed at illustrating how to build a fully functioning admission webhook in the simplest way possible. Most existing examples found on the web rely on heavy machinery using powerful frameworks, yet fail to illustrate how to implement a lightweight webhook that can do much needed actions such as rejecting a pod for compliance reasons, or inject helpful environment variables.
-
-For readability, this project has been stripped of the usual production items such as: observability instrumentation, release scripts, redundant deployment configurations, etc. As such, it is not meant to use as-is in a production environment. This project is, in fact, a simplified fork of a system used accross all Kubernetes production environments at Slack.
+# envd-server-pod-webhook
 
 ## Installation
 This project can fully run locally and includes automation to deploy a local Kubernetes cluster (using Kind).
@@ -64,41 +58,41 @@ To configure the cluster to use the admission webhook and to deploy said webhook
 ```
 ❯ make deploy
 
-📦 Building simple-kubernetes-webhook Docker image...
-docker build -t simple-kubernetes-webhook:latest .
+📦 Building envd-server-pod-webhook Docker image...
+docker build -t envd-server-pod-webhook:latest .
 [+] Building 14.3s (13/13) FINISHED
 ...
 
 📦 Pushing admission-webhook image into Kind's Docker daemon...
-kind load docker-image simple-kubernetes-webhook:latest
-Image: "simple-kubernetes-webhook:latest" with ID "sha256:46b8603bcc11a8fa1825190d3ed99c099096395b22a709e13ec6e7ae2f54014d" not yet present on node "kind-control-plane", loading...
+kind load docker-image envd-server-pod-webhook:latest
+Image: "envd-server-pod-webhook:latest" with ID "sha256:46b8603bcc11a8fa1825190d3ed99c099096395b22a709e13ec6e7ae2f54014d" not yet present on node "kind-control-plane", loading...
 
 ⚙️  Applying cluster config...
 kubectl apply -f dev/manifests/cluster-config/
 namespace/apps created
-mutatingwebhookconfiguration.admissionregistration.k8s.io/simple-kubernetes-webhook.acme.com created
-validatingwebhookconfiguration.admissionregistration.k8s.io/simple-kubernetes-webhook.acme.com created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/envd-server.tensorchord.ai created
+validatingwebhookconfiguration.admissionregistration.k8s.io/envd-server.tensorchord.ai created
 
-🚀 Deploying simple-kubernetes-webhook...
+🚀 Deploying envd-server-pod-webhook...
 kubectl apply -f dev/manifests/webhook/
-deployment.apps/simple-kubernetes-webhook created
-service/simple-kubernetes-webhook created
-secret/simple-kubernetes-webhook-tls created
+deployment.apps/envd-server-pod-webhook created
+service/envd-server-pod-webhook created
+secret/envd-server-pod-webhook-tls created
 ```
 
 Then, make sure the admission webhook pod is running (in the `default` namespace):
 ```
 ❯ kubectl get pods
 NAME                                        READY   STATUS    RESTARTS   AGE
-simple-kubernetes-webhook-77444566b7-wzwmx   1/1     Running   0          2m21s
+envd-server-pod-webhook-77444566b7-wzwmx   1/1     Running   0          2m21s
 ```
 
 You can stream logs from it:
 ```
 ❯ make logs
 
-🔍 Streaming simple-kubernetes-webhook logs...
-kubectl logs -l app=simple-kubernetes-webhook -f
+🔍 Streaming envd-server-pod-webhook logs...
+kubectl logs -l app=envd-server-pod-webhook -f
 time="2021-09-03T04:59:10Z" level=info msg="Listening on port 443..."
 time="2021-09-03T05:02:21Z" level=debug msg=healthy uri=/health
 ```
@@ -126,7 +120,7 @@ Deploy a non valid pod that gets rejected:
 
 🚀 Deploying "bad" pod...
 kubectl apply -f dev/manifests/pods/bad-name.pod.yaml
-Error from server: error when creating "dev/manifests/pods/bad-name.pod.yaml": admission webhook "simple-kubernetes-webhook.acme.com" denied the request: pod name contains "offensive"
+Error from server: error when creating "dev/manifests/pods/bad-name.pod.yaml": admission webhook "envd-server.tensorchord.ai" denied the request: pod name contains "offensive"
 ```
 You should see in the admission webhook logs that the pod validation failed. It's possible you will also see that the pod was mutated, as webhook configurations are not ordered.
 
@@ -135,10 +129,10 @@ Unit tests can be run with the following command:
 ```
 $ make test
 go test ./...
-?   	github.com/slackhq/simple-kubernetes-webhook	[no test files]
-ok  	github.com/slackhq/simple-kubernetes-webhook/pkg/admission	0.611s
-ok  	github.com/slackhq/simple-kubernetes-webhook/pkg/mutation	1.064s
-ok  	github.com/slackhq/simple-kubernetes-webhook/pkg/validation	0.749s
+?   	github.com/tensorchord/envd-server-pod-webhook	[no test files]
+ok  	github.com/tensorchord/envd-server-pod-webhook/pkg/admission	0.611s
+ok  	github.com/tensorchord/envd-server-pod-webhook/pkg/mutation	1.064s
+ok  	github.com/tensorchord/envd-server-pod-webhook/pkg/validation	0.749s
 ```
 
 ## Admission Logic
@@ -159,5 +153,6 @@ To add a new pod mutation, create a file `pkg/validation/MUTATION_NAME.go`, then
 #### How to add a new pod mutation
 To add a new pod mutation, create a file `pkg/mutation/MUTATION_NAME.go`, then create a new struct implementing the `mutation.podMutator` interface.
 
+## Acknowledgements
 
-
+- [slackhq/simple-kubernetes-webhook](https://github.com/slackhq/simple-kubernetes-webhook)

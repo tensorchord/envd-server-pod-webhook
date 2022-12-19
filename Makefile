@@ -11,8 +11,8 @@ build:
 
 .PHONY: docker-build
 docker-build:
-	@echo "\n📦 Building simple-kubernetes-webhook Docker image..."
-	docker build -t simple-kubernetes-webhook:latest .
+	@echo "\n📦 Building envd-server-pod-webhook Docker image..."
+	docker buildx build -t envd-server-pod-webhook:latest .
 
 # From this point `kind` is required
 .PHONY: cluster
@@ -26,9 +26,9 @@ delete-cluster:
 	kind delete cluster
 
 .PHONY: push
-push: docker-build
+push:
 	@echo "\n📦 Pushing admission-webhook image into Kind's Docker daemon..."
-	kind load docker-image simple-kubernetes-webhook:latest
+	kind load docker-image envd-server-pod-webhook:latest
 
 .PHONY: deploy-config
 deploy-config:
@@ -42,12 +42,12 @@ delete-config:
 
 .PHONY: deploy
 deploy: push delete deploy-config
-	@echo "\n🚀 Deploying simple-kubernetes-webhook..."
+	@echo "\n🚀 Deploying envd-server-pod-webhook..."
 	kubectl apply -f dev/manifests/webhook/
 
 .PHONY: delete
 delete:
-	@echo "\n♻️  Deleting simple-kubernetes-webhook deployment if existing..."
+	@echo "\n♻️  Deleting envd-server-pod-webhook deployment if existing..."
 	kubectl delete -f dev/manifests/webhook/ || true
 
 .PHONY: pod
@@ -77,8 +77,8 @@ taint:
 
 .PHONY: logs
 logs:
-	@echo "\n🔍 Streaming simple-kubernetes-webhook logs..."
-	kubectl logs -l app=simple-kubernetes-webhook -f
+	@echo "\n🔍 Streaming envd-server-pod-webhook logs..."
+	kubectl logs -l app=envd-server-pod-webhook -f
 
 .PHONY: delete-all
 delete-all: delete delete-config delete-pod delete-bad-pod
